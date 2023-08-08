@@ -9,6 +9,8 @@
         window.onload = function () {
 
             // Initial Values
+            //инит исправить, пока не ясно как
+            var period = 5000;
             var xValue = 0;
             var yValue = 10;
             var newDataCount = 6;
@@ -18,11 +20,10 @@
             var chart = new CanvasJS.Chart("chartContainer", {
                 theme: "light2",
                 title: {
-                    text: "Live Air Quality Update"
+                    text: "Cpu/Ram Loading"
                 },
                 axisX: {
                     suffix: "time",
-                    //valueFormatString: "D MMMM",
                     interval: 15,
                     intervalType: "second"
                 },
@@ -34,11 +35,11 @@
                     dataPoints: dataPointsCpu,
                     name: "CpuLoading"
                 },
-                    {
-                        type: "spline",
-                        dataPoints: dataPointsRam,
-                        name: "RamLoading"
-                    }]
+                {
+                    type: "spline",
+                    dataPoints: dataPointsRam,
+                    name: "RamLoading"
+                }]
             });
 
             updateData();
@@ -47,7 +48,7 @@
                 if (newDataCount !== 1) {
                     //reverse для того, чтобы при первой итерации при добавлении новое значение соединялось с последним, а не с первым
                     $.each(data.reverse(), function (key, value) {
-                        dataPointsCpu.push({ x: new Date(value.Year, value. Month, value.Day, value.Hour, value.Minute, value.Second), y: value.CpuLoading });
+                        dataPointsCpu.push({ x: new Date(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second), y: value.CpuLoading });
                         dataPointsRam.push({ x: new Date(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second), y: value.RamLoading });
                     });
                     newDataCount = 1;
@@ -55,21 +56,53 @@
                     dataPointsCpu.push({ x: new Date(data[0].Year, data[0].Month, data[0].Day, data[0].Hour, data[0].Minute, data[0].Second), y: data[0].CpuLoading });
                     dataPointsRam.push({ x: new Date(data[0].Year, data[0].Month, data[0].Day, data[0].Hour, data[0].Minute, data[0].Second), y: data[0].RamLoading })
                 }
+                chart.options.title.text = "Cpu/Ram Loading, automatic update period = " + secondsToDhms(period);
                 chart.render();
-                setTimeout(updateData, 5000);
+                setTimeout(updateData, period);
             }
 
             function updateData() {
+                //1000 это милисекунды в секунде, заменить на const(+ await)
+                $.getJSON("/settings/CurrentPeriod", function (data) { period = data["period"] * 1000});
                 $.post("/data/create");
                 $.getJSON("/data/getlasts?count=" + newDataCount, addData);
             }
 
+            //Функция конвертации секунд в дни,часы и секунды
+            function secondsToDhms(seconds) {
+                //т.к. изначально время хранится в милисекундах
+                seconds = seconds / 1000;
+                seconds = Number(seconds);
+                var d = Math.floor(seconds / (3600 * 24));
+                var h = Math.floor(seconds % (3600 * 24) / 3600);
+                var m = Math.floor(seconds % 3600 / 60);
+                var s = Math.floor(seconds % 60);
+
+                var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
+                var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+                var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+                var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+                return dDisplay + hDisplay + mDisplay + sDisplay;
+            }
         }
     </script>
 </head>
 <body>
-    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
     <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
     <script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>
+    <div id="chartContainer" style="height: 370px; width: 100%;"></div>
+    <form id="Settings">
+        <input type="text" id="Period">
+        <button type="button" id="changePeriodButton">Изменить</button>
+    </form>
+    <script>
+            $(document).ready(function () {
+                $("#changePeriodButton").click(function () {
+                var inputValue = $("#Period").val();
+                $.post("/settings/changeperiod", {period : inputValue});
+            });
+        });
+    </script>
+
 </body>
-</html> 
+</html>

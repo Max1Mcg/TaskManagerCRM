@@ -19,9 +19,9 @@ namespace EFC0re.Controllers
         {
             _settingsService = settingsService;
         }
-        [System.Web.Http.HttpPatch]
+        [System.Web.Http.HttpPost]
         //[System.Web.Http.Route("")]
-        public async Task ChangePeriod(int? period)
+        public async Task ChangePeriod([FromBody]int? period)
         {
             await _settingsService.ChangePeriod(period);
             //return View();
@@ -29,7 +29,7 @@ namespace EFC0re.Controllers
         [System.Web.Http.HttpGet]
         public ContentResult CurrentPeriod()
         {
-            return Content(JsonConvert.SerializeObject(_settingsService.GetPeriod(), _jsonSetting), "application/json");
+            return Content(JsonConvert.SerializeObject(new { period = _settingsService.GetPeriod() }, _jsonSetting), "application/json");
         }
         JsonSerializerSettings _jsonSetting = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
     }

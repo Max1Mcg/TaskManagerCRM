@@ -9,6 +9,6 @@ namespace EFC0re.Services.Interfaces
     public interface ISettingsService
     {
         Task ChangePeriod(int? period);
-        int GetPeriod();
+        int? GetPeriod();
     }
 }

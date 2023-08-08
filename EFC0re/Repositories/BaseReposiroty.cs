@@ -12,8 +12,7 @@ namespace EFC0re.Repositories
     {
         protected readonly WebSiteContext _context;
         protected readonly DbSet<T> _set;
-        WebSiteContext context;
-        public BaseRepository(WebSiteContext context)//WebSiteCodeFirstContext context
+        public BaseRepository(WebSiteContext context)
         {
             _context = context;
             _set = _context.Set<T>();
@@ -25,7 +24,10 @@ namespace EFC0re.Repositories
         }
         public async Task Update(T entity)
         {
+            //ужасная затычка на удаление дублирующего элемента, который выкидывает исключение, исправить
+            _set.Remove(_set.FirstOrDefault());
             _context.Update(entity);
+            _set.Add(entity);
             await _context.SaveChangesAsync();
         }
         public async Task Delete(object id)

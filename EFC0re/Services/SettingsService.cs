@@ -1,4 +1,5 @@
-﻿using EFC0re.Repositories.Interfaces;
+﻿using EFC0re.Repositories;
+using EFC0re.Repositories.Interfaces;
 using EFC0re.Services.Interfaces;
 using Npgsql.TypeHandlers;
 using System;
@@ -13,17 +14,17 @@ namespace EFC0re.Services
     {
         ISettingsRepository _settingsRepository;
         public SettingsService(ISettingsRepository settingsRepository) {
-            _settingsRepository= settingsRepository;
+            _settingsRepository = settingsRepository;
         }
         public async Task ChangePeriod(int? period)
         {
             if (_settingsRepository.GetSingle() != default)
-                await _settingsRepository.Update(new Settings {Idperiod = _settingsRepository.GetSingle().Idperiod, Period = period});
-            else await _settingsRepository.Create(new Settings { Idperiod = new Guid(), Period = period});
+                await _settingsRepository.Update(new Settings { Idperiod = _settingsRepository.GetSingle().Idperiod, Period = period });
+            else await _settingsRepository.Create(new Settings { Idperiod = new Guid(), Period = period });
         }
-        public int GetPeriod()
+        public int? GetPeriod()
         {
-            return _settingsRepository.GetSingle().Period.Value;
+            return _settingsRepository.GetSingle()?.Period.Value;
         }
     }
 }
